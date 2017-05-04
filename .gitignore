@@ -1,1 +1,4 @@
-.idea/
+*elm-stuff*
+*idea*
+*.DS_Store
+*iml

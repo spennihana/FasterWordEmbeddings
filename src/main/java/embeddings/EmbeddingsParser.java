@@ -17,7 +17,6 @@ import java.util.concurrent.RecursiveAction;
  *
  * All of the hot loops are branch free, do no GC, use simple (low-instruction count) ops, and rely on
  * primitives as much as possible.
- *
  */
 public class EmbeddingsParser {
 
@@ -56,7 +55,7 @@ public class EmbeddingsParser {
       _str_type = read1(fs)==1;
       _vec_sz   = read2(fs);
       _scale    = read1(fs);
-      _shift    =  read3(fs);
+      _shift    = read3(fs);
       _nchks    = read2(fs);
       _offs = new long[_nchks];
       long headerBytes = 1L + 2L + 1L + 3L + 2L + _nchks*8L;
@@ -177,7 +176,6 @@ public class EmbeddingsParser {
         BufferedBytes bs = new BufferedBytes(_in,pos,ssz);
         _embeddings.put(bs,bs); // why use two BufferedBytes when you could use one!
         pos += ssz + NBYTES*_vsz;
-
         assert pos-start == (1+_stype) + ssz + _vsz*NBYTES;
       }
     }

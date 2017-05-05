@@ -2,3 +2,5 @@
 *.DS_Store
 *iml
 build/
+out/
+sandbox/

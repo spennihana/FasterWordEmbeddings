@@ -145,7 +145,7 @@ public class EmbeddingsParser {
 
   /**
    * This is the core code for creating the necessary layer over the raw bytes.
-   * The compute method is branch free and doesn't do any GC. It
+   * The compute method is branch free and doesn't do any GC.
    */
   private static class BuildEmbeddingsTask extends RecursiveAction {
     byte[] _in;

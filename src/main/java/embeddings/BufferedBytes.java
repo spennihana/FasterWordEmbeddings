@@ -1,7 +1,5 @@
 package embeddings;
 
-import java.util.Arrays;
-
 /**
  * Simple wrapper class for a byte[].
  *
@@ -24,9 +22,7 @@ public class BufferedBytes implements Comparable<BufferedBytes> {
     _len = len;
   }
 
-  public BufferedBytes() { }
   public BufferedBytes(byte[] buf) { this(buf,0,buf.length); }
-  BufferedBytes(BufferedBytes from) { this(Arrays.copyOfRange(from._buf,from._off,from._off+from._len)); }
 
   @Override public int compareTo( BufferedBytes bb ) {
     int len = Math.min(_len,bb._len);

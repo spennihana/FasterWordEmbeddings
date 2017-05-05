@@ -167,14 +167,14 @@ public class EmbeddingsParser {
         int ssz; // string size
 
         // these two lines setup "oddly" to avoid branching code like this:
-        //  if( _stype==1 ) ssz = _in[pos++] & 0xFF | (_in[pos++] & 0xFF) << 8;
-        //  else            ssz = _in[pos++] & 0xFF;
+        //   if( _stype==1 ) ssz = _in[pos++] & 0xFF | (_in[pos++] & 0xFF) << 8;
+        //   else            ssz = _in[pos++] & 0xFF;
         // these lines are instead branch free!
         ssz = _in[pos++] & 0xFF + _stype*( (_in[pos] & 0xFF) << 8);
         pos += _stype;
 
         BufferedBytes bs = new BufferedBytes(_in,pos,ssz);
-        _embeddings.put(bs,bs); // why use two BufferedBytes when you could use one!
+        _embeddings.put(bs,bs); // why use two objects when you could use one!
         pos += ssz + NBYTES*_vsz;
         assert pos-start == (1+_stype) + ssz + _vsz*NBYTES;
       }

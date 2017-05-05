@@ -4,9 +4,10 @@ See more at https://spenai.org/bravepineapple/faster\_em
 
 ## Build Instructions
 
-To build the faster\_em.jar perform:
+Build faster\_em.jar:
+
 ` $ make`
 
-To run tests, perform:
+Run tests:
 
 ` $ make test`

@@ -49,11 +49,14 @@ JUNIT_RUNNER="org.junit.runner.JUnitCore"
 # add 'sort' to get determinism on order of tests on different machines
 # methods within a class can still reorder due to junit?
 # '/usr/bin/sort' needed to avoid windows native sort when run in cygwin
-(cd src/test/java/embeddings; /usr/bin/find . -name '*.java' | cut -c3- | sed 's/.....$//' | sed -e 's/\//./g') | /usr/bin/sort > $OUTDIR/tests.txt
+(cd src/test/java; /usr/bin/find . -name '*.java' | cut -c3- | sed 's/.....$//' | sed -e 's/\//./g') | grep -v ComparisonUtils | /usr/bin/sort > $OUTDIR/tests.txt
 
 # Launch last driver JVM.  All output redir'd at the OS level to sandbox files.
-echo Running junit tests...
-($JVM $JUNIT_RUNNER `cat $OUTDIR/tests.txt` 2>&1 ; echo $? > $OUTDIR/status.0) 1> $OUTDIR/out.0 2>&1
+echo Running junits...
+while read p; do
+  echo Running test $p
+  ($JVM $JUNIT_RUNNER $p 2>&1 ; echo $? > $OUTDIR/status.0) 1>> $OUTDIR/out.0 2>&1
+done < $OUTDIR/tests.txt
 
 grep EXECUTION $OUTDIR/out.0 | cut "-d " -f23,20 | awk '{print $2 " " $1}'| sort -gr | head -n 10 >> $OUTDIR/out.0
 

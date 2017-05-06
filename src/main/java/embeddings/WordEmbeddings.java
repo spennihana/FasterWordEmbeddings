@@ -7,7 +7,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  * Sample class for using word embeddings.
- * Provides an enum that statically loads embeddings from the specified location.
+ * Provides an enum that statically loads embeddings
  */
 public class WordEmbeddings {
   private float _scale;
@@ -15,8 +15,8 @@ public class WordEmbeddings {
   private short _vec_sz;
 
   public enum EMBEDDINGS {
-    GLOVE(EmbeddingsParser.parse("./lib/w2vec_models/glove.bin")),
-    GOOGL(EmbeddingsParser.parse("./lib/w2vec_models/googl.bin"));
+    GLOVE(EmbeddingsParser.parse("./data/glove.bin")),
+    GOOGL(EmbeddingsParser.parse("./data/googl.bin"));
 
     private final WordEmbeddings _em;
     private EMBEDDINGS(EmbeddingsParser ep) {
@@ -72,12 +72,12 @@ public class WordEmbeddings {
     for (HashMap<BufferedBytes, BufferedBytes> map : maps) _map.putAll(map);
   }
 
-  void get(BufferedBytes s, float[] res) {
-    BufferedBytes bs= _map.get(s);
-    if( bs==null )
+  private void get(BufferedBytes s, float[] res) {
+    BufferedBytes bb= _map.get(s);
+    if( bb==null )
       return;
-    int off=bs._off + bs._len; // _off is the start of the string, _len is the length of the string
-    byte[] buf = bs._buf;
+    int off=bb._off + bb._len; // _off is the start of the string, _len is the length of the string
+    byte[] buf = bb._buf;
     int idx=0;
     int i=off;
     for(;i<off+NBYTES*_vec_sz;i+=NBYTES) {

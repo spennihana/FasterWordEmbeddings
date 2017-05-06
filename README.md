@@ -11,3 +11,8 @@ Build faster\_em.jar:
 Run tests:
 
 ` $ make test`
+
+
+## Test Results
+
+I've included a sample run of test results in the sample_test_results directory.

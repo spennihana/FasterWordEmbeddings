@@ -15,7 +15,7 @@ import java.util.concurrent.RecursiveAction;
  *
  * Raw bytes of the word embeddings file are read into RAM with concurrent invocations of DiskReadTask.
  *
- * All of the hot loops are branch free, do no GC, use simple (low-instruction count) ops, and rely on
+ * All of the hot loops are branch free, do no GC, use mostly simple (low-instruction count) ops, and rely on
  * primitives as much as possible.
  */
 public class EmbeddingsParser {
@@ -58,8 +58,9 @@ public class EmbeddingsParser {
       _shift    = read3(fs);
       _nchks    = read2(fs);
       _offs = new long[_nchks];
-      long headerBytes = 1L + 2L + 1L + 3L + 2L + _nchks*8L;
-      int i=0;
+      long headerBytes = 1L + 2L + 1L + 3L + 2L + (_nchks-1)*8L;
+      int i=1;
+      _offs[0] = headerBytes;
       while(i < _offs.length)
         _offs[i++] = read8(fs) + headerBytes;
     } catch( Exception e) {
@@ -67,15 +68,19 @@ public class EmbeddingsParser {
     }
   }
 
-  // no need for &-mask since values should be positive
-  byte  read1(FileInputStream fs) throws IOException { return (byte)fs.read(); }
-  short read2(FileInputStream fs) throws IOException { return (short)(fs.read() | fs.read() << 8); }
-  int   read3(FileInputStream fs) throws IOException { return fs.read() | (fs.read()) << 8 | (fs.read()) << 16; }
-  long  read8(FileInputStream fs) throws IOException {
-    long r=0;
-    for(int i=0; i<8; i++)
-      r |= ((long)fs.read()) << (8*i);
-    return r;
+  private int   read1U(FileInputStream fs) throws IOException { return read1(fs) & 0xFF; }
+  private byte  read1(FileInputStream fs) throws IOException { return (byte)fs.read(); }
+  private short read2(FileInputStream fs) throws IOException { return (short)(read1U(fs) | read1U(fs) << 8); }
+  private int   read3(FileInputStream fs) throws IOException { return read1U(fs) | read1U(fs) << 8 | read1(fs) << 16; }
+  private long  read8(FileInputStream fs) throws IOException {
+    return ((((long)read1(fs) & 0xFF)       ) |
+           (( (long)read1(fs) & 0xFF) << 8  ) |
+           (( (long)read1(fs) & 0xFF) << 16 ) |
+           (( (long)read1(fs) & 0xFF) << 24 ) |
+           (( (long)read1(fs) & 0xFF) << 32 ) |
+           (( (long)read1(fs) & 0xFF) << 40 ) |
+           (( (long)read1(fs) & 0xFF) << 48 ) |
+           (( (long)read1(fs) & 0xFF) << 56 ));
   }
 
   private EmbeddingsParser readFromDisk() {
@@ -97,7 +102,7 @@ public class EmbeddingsParser {
    * chunk of data (4MB roughly) using the FileChannel API to set a Random Access starting
    * offset to read from.
    */
-  static class DiskReadTask extends RecursiveAction {
+  private static class DiskReadTask extends RecursiveAction {
     int _cidx;
     byte[] _chk;
     int _chkSize;
@@ -150,13 +155,13 @@ public class EmbeddingsParser {
   private static class BuildEmbeddingsTask extends RecursiveAction {
     byte[] _in;
     int _cidx;
-    int _stype;
+    int _stype; // 1 when needing to parse an additional byte for string length; otherwise 0
     int _vsz;
-    final HashMap<BufferedBytes, BufferedBytes> _embeddings;
+    HashMap<BufferedBytes, BufferedBytes> _embeddings;
     BuildEmbeddingsTask(int cidx, byte[] in, boolean str_type, int vec_sz) {
       _cidx=cidx;
       _in=in;
-      _stype=str_type?0:1;
+      _stype=str_type?1:0;
       _vsz=vec_sz;
       _embeddings=new HashMap<>();
     }
@@ -166,15 +171,15 @@ public class EmbeddingsParser {
         int start=pos;
         int ssz; // string size
 
-        // these two lines setup "oddly" to avoid branching code like this:
+        // these two lines are setup "oddly" to avoid branching code like this:
         //   if( _stype==1 ) ssz = _in[pos++] & 0xFF | (_in[pos++] & 0xFF) << 8;
         //   else            ssz = _in[pos++] & 0xFF;
-        // these lines are instead branch free!
-        ssz = _in[pos++] & 0xFF + _stype*( (_in[pos] & 0xFF) << 8);
-        pos += _stype;
+        // these lines are instead branch free
+        ssz = (_in[pos] & 0xFF) + _stype*( (_in[pos+_stype] & 0xFF) << 8);
+        pos += (1+_stype);
 
-        BufferedBytes bs = new BufferedBytes(_in,pos,ssz);
-        _embeddings.put(bs,bs); // why use two objects when you could use one!
+        BufferedBytes bb = new BufferedBytes(_in,pos,ssz);
+        _embeddings.put(bb,bb); // why use two objects when you could use one!
         pos += ssz + NBYTES*_vsz;
         assert pos-start == (1+_stype) + ssz + _vsz*NBYTES;
       }

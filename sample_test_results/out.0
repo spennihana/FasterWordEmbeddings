@@ -1,0 +1,24 @@
+JUnit version 4.12
+.Disk to RAM read in 5.496 seconds
+Processed 2196016 embeddings in 0.167 seconds.
+[GC (Allocation Failure)  3932160K->3627968K(15073280K), 1.5101033 secs]
+[GC (Allocation Failure)  7560128K->4301358K(15073280K), 2.0589924 secs]
+
+JUnit version 4.12
+.Disk to RAM read in 8.137 seconds
+Processed 3000000 embeddings in 0.181 seconds.
+[GC (Allocation Failure)  3932160K->5157488K(15073280K), 2.2511130 secs]
+
+JUnit version 4.12
+.Disk to RAM read in 8.492 seconds
+Processed 3000000 embeddings in 0.213 seconds.
+8.724 seconds to read glove embeddings
+.[GC (Allocation Failure)  3929449K->509517K(15073280K), 0.2116636 secs]
+Disk to RAM read in 5.828 seconds
+Processed 2196016 embeddings in 0.055 seconds.
+5.895 seconds to read glove embeddings
+
+Time: 14.624
+
+OK (2 tests)
+

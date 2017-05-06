@@ -4,3 +4,7 @@
 build/
 out/
 sandbox/
+*gz
+*bin
+*txt
+*csv

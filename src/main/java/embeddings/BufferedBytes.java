@@ -10,7 +10,7 @@ package embeddings;
  * Fields are provided for performances reasons to eliminate unnecessary getters which
  * carry significant penalty when invoked from hot inner loops millions/billions of times.
  */
-public class BufferedBytes implements Comparable<BufferedBytes> {
+public class BufferedBytes {
   byte [] _buf;
   int _off;
   int _len;
@@ -23,15 +23,6 @@ public class BufferedBytes implements Comparable<BufferedBytes> {
   }
 
   public BufferedBytes(byte[] buf) { this(buf,0,buf.length); }
-
-  @Override public int compareTo( BufferedBytes bb ) {
-    int len = Math.min(_len,bb._len);
-    for( int i=0; i<len; i++ ) {
-      int x = (_buf[_off+i] & 0xFF) - (bb._buf[bb._off+i] & 0xFF);
-      if( x != 0 ) return x;
-    }
-    return _len - bb._len;
-  }
 
   @Override public int hashCode(){
     int hash = 0;
@@ -48,5 +39,11 @@ public class BufferedBytes implements Comparable<BufferedBytes> {
     for (int i = 0; i < _len; ++i)
       if (_buf[_off + i] != bb._buf[bb._off + i]) return false;
     return true;
+  }
+
+  @Override public String toString() {
+    byte[] bits = new byte[_len];
+    System.arraycopy(_buf, _off, bits, 0, _len);
+    return new String(bits);
   }
 }

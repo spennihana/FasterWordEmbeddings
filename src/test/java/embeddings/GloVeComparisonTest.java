@@ -23,6 +23,7 @@ public class GloVeComparisonTest {
     float[] res = new float[ep._vec_sz];
 
     double maxErr=-Double.MAX_VALUE;
+    long start = System.currentTimeMillis();
     try(BufferedInputStream bis = new BufferedInputStream(new FileInputStream(new File("./data/glove.840B.300d.txt")))) {
       byte[] lineBytes;
       int line_idx=0;
@@ -62,6 +63,8 @@ public class GloVeComparisonTest {
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    System.out.println("Elapsed: " + (System.currentTimeMillis() - start)/1000. + " seconds");
     System.out.println("Max err: " + maxErr);
   }
 

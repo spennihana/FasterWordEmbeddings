@@ -30,7 +30,7 @@ public class EmbeddingsParser {
   short _vec_sz; // number of elements in a vector
   byte _scale; // power-of-10 exponent
   int _shift; // add this back to each vector value
-  private short _nchks; // number of independent tasks
+  short _nchks; // number of independent tasks
   private long[] _offs; // read file at these byte offsets (zero'd after the header!)
 
   private String _path; // path to the embeddings

@@ -1,6 +1,8 @@
 package embeddings;
 
+import java.util.Arrays;
 import java.util.HashMap;
+
 import static embeddings.EmbeddingsParser.NBYTES;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -73,6 +75,7 @@ public class WordEmbeddings {
   }
 
   private void get(BufferedBytes s, float[] res) {
+    Arrays.fill(res,0);
     BufferedBytes bb= _map.get(s);
     if( bb==null )
       return;

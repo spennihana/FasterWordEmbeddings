@@ -79,7 +79,9 @@ public class WordEmbeddings {
       if( _em._map.get(new BufferedBytes(word.getBytes(UTF_8)))==null ) throw new IllegalArgumentException(word + " is not in the word embeddings vocabulary");
       CompareTask ct = new CompareTask(word,n,_em);
       ct.invoke();
-      return ct._res.toArray(new SimilarWord[ct._res.size()]);
+      SimilarWord[] res = new SimilarWord[n];
+      while(!ct._res.isEmpty()) res[--n] = ct._res.poll();
+      return res;
     }
   }
 
@@ -126,8 +128,9 @@ public class WordEmbeddings {
     CompareTask _left, _rite;
     int _lo, _hi;
     boolean _rootTask; // top level fork point; all results reduced here
-    private final Set<BufferedBytes> _keys;
+    private final BufferedBytes[] _keys;
     private final WordEmbeddings _em;
+    private final BufferedBytes _theWord;
     private final int _chkSize; // number of items ina "leaf" node
 
     final int _n;
@@ -135,20 +138,22 @@ public class WordEmbeddings {
     final float[] _wordEm;
 
     CompareTask(String word, int n, WordEmbeddings em) {
+      _theWord = new BufferedBytes(word.getBytes(UTF_8));
       _lo=0;
       _hi=em._map.size();
       _chkSize= _hi/em._nchks;
-      _keys = em._map.keySet();
+      _keys = em._map.keySet().toArray(new BufferedBytes[_hi]);
       _em = em;
       _rootTask=true;
       _n=n;
       _wordEm = new float[em._vec_sz];
-      em.get(word,_wordEm);
+      em.get(_theWord,_wordEm);
       _res = new PriorityQueue<>(_n);
     }
 
     CompareTask(CompareTask cc) {
       super(cc);
+      _theWord=cc._theWord;
       _chkSize=cc._chkSize;
       _rootTask=false;
       _keys=cc._keys;
@@ -190,12 +195,10 @@ public class WordEmbeddings {
     }
 
     void compute1() {
-      Iterator<BufferedBytes> it = _keys.iterator();
-      int i=0;
       float[] ems = new float[_em._vec_sz];
-      while(i++ < _lo ) it.next(); // iterate to the next word
-      while(i++ < _hi) {
-        BufferedBytes word = it.next();
+      while(_lo < _hi) {
+        BufferedBytes word = _keys[_lo++];
+        if( word.equals(_theWord) ) continue; // don't include the word of interest
         _em.get(word,ems);
         if( _res.size() == _n ) _res.poll();  // drop the "least" value from heap
         float dist = cosine_distance(_wordEm,ems);

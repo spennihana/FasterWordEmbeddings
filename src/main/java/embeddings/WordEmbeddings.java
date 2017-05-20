@@ -18,8 +18,8 @@ public class WordEmbeddings {
   private int _nchks;
 
   public enum EMBEDDINGS {
-    GLOVE(EmbeddingsParser.parse("./data/glove.bin"));
-//    GOOGL(EmbeddingsParser.parse("./data/googl.bin"));
+    GLOVE(EmbeddingsParser.parse("./data/glove.bin")),
+    GOOGL(EmbeddingsParser.parse("./data/googl.bin"));
 
     private final WordEmbeddings _em;
     private EMBEDDINGS(EmbeddingsParser ep) {

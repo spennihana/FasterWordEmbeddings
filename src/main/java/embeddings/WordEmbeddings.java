@@ -189,8 +189,13 @@ public class WordEmbeddings {
     void reduce(CompareTask that) {
       if( that==null ) return;
       for(SimilarWord sw: that._res) {
-        if( _res.size()==_n ) _res.poll();
-        _res.add(sw);
+        if( _res.size() < _n ) _res.add(sw);
+        else {
+          if( _res.peek()._dist > sw._dist ) {
+            _res.poll();
+            _res.add(sw);
+          }
+        }
       }
     }
 
@@ -200,9 +205,14 @@ public class WordEmbeddings {
         BufferedBytes word = _keys[_lo++];
         if( word.equals(_theWord) ) continue; // don't include the word of interest
         _em.get(word,ems);
-        if( _res.size() == _n ) _res.poll();  // drop the "least" value from heap
-        float dist = cosine_distance(_wordEm,ems);
-        _res.add(new SimilarWord(word,dist));
+        float dist = cosine_distance(_wordEm,ems); // smaller => more similar
+        if( _res.size() < _n ) _res.add(new SimilarWord(word,dist));
+        else {
+          if( _res.peek()._dist > dist ) {
+            _res.poll();  // drop the "least" value from heap
+            _res.add(new SimilarWord(word,dist)); // this word has a stronger similarity, so add it
+          }
+        }
       }
     }
 

@@ -232,9 +232,10 @@ public class WordEmbeddings {
     }
   }
 
-  private static class SimilarWord implements Comparable<SimilarWord> {
+  public static class SimilarWord implements Comparable<SimilarWord> {
     BufferedBytes _word;
     float _dist; // cosine similarity
+    public String word() { return _word.toString(); }
     SimilarWord(BufferedBytes bb, float distance) { _word=bb; _dist=distance; }
     @Override public int compareTo(SimilarWord o) { return Double.compare(o._dist,_dist); } // reverse sort
   }

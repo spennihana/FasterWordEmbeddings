@@ -17,6 +17,8 @@ public class WordEmbeddings {
   private short _vec_sz;
   private int _nchks;
 
+  BufferedBytes[] _keys; // cached keys arrays
+
   public enum EMBEDDINGS {
     GLOVE(EmbeddingsParser.parse("./data/glove.bin")),
     GOOGL(EmbeddingsParser.parse("./data/googl.bin"));
@@ -68,6 +70,14 @@ public class WordEmbeddings {
       _em.get(bb, res);
     }
 
+    public boolean has(String word) {
+      return has(new BufferedBytes(word.getBytes(UTF_8)));
+    }
+
+    public boolean has(BufferedBytes bb) {
+      return _em._map.get(bb)!=null;
+    }
+
     /**
      * Compute the cosine distance for this word and each word in the vocabulary. Return the top n most similar words.
      * @param word find similar words to this word
@@ -90,6 +100,7 @@ public class WordEmbeddings {
   private WordEmbeddings(HashMap<BufferedBytes,BufferedBytes>[] maps) {
     _map=new HashMap<>();
     for (HashMap<BufferedBytes, BufferedBytes> map : maps) _map.putAll(map);
+    _keys = _map.keySet().toArray(new BufferedBytes[_map.size()]);
   }
 
 
@@ -120,8 +131,7 @@ public class WordEmbeddings {
    *
    * Split up the collection of words to compare until sub-collection "leaf" has ~ nwords/nchunks elements.
    * Several instances of CompareTask will be created to spread the work out of F/J threads. Pairs of tasks
-   * reduce their results together all the way back to the original fork point via onCompletion (where the original
-   * top-level task has no completer).
+   * reduce their results together all the way back to the original fork point via onCompletion.
    */
   private static class CompareTask extends CountedCompleter {
 
@@ -142,7 +152,7 @@ public class WordEmbeddings {
       _lo=0;
       _hi=em._map.size();
       _chkSize= _hi/em._nchks;
-      _keys = em._map.keySet().toArray(new BufferedBytes[_hi]);
+      _keys = em._keys;
       _em = em;
       _rootTask=true;
       _n=n;
@@ -209,7 +219,7 @@ public class WordEmbeddings {
         if( _res.size() < _n ) _res.add(new SimilarWord(word,dist));
         else {
           if( _res.peek()._dist > dist ) {
-            _res.poll();  // drop the "least" value from heap
+            _res.poll();  // drop the "least" value from heap (which is actually the largest item in the heap)
             _res.add(new SimilarWord(word,dist)); // this word has a stronger similarity, so add it
           }
         }
@@ -237,6 +247,6 @@ public class WordEmbeddings {
     float _dist; // cosine similarity
     public String word() { return _word.toString(); }
     SimilarWord(BufferedBytes bb, float distance) { _word=bb; _dist=distance; }
-    @Override public int compareTo(SimilarWord o) { return Double.compare(o._dist,_dist); } // reverse sort
+    @Override public int compareTo(SimilarWord o) { return Double.compare(o._dist,_dist); } // reverse sort, so heap head is largest item
   }
 }
